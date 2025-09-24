@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ERP</title>
+  <link rel="stylesheet" href="index.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="menu-logo">
+      <img src="menu.png" alt="Menu" class="menu-icon" id="openMenu">
+      <span class="erp-title">ERP</span>
+    </div>
+    <img src="nhsLogo.png" alt="NHS Logo" class="nhs-logo">
+  </header>
+  <div id="sidebar" class="sidebar">
+    <span class="close-btn" id="closeMenu">&times;</span>
+    <div class="search-box">
+      <input type="text" placeholder="Pesquisar...">
+      <button><span>&#128269;</span></button>
+    </div>
+    <hr class="divider">
+    <div class="sidebar-section">
+      <div class="section-title" data-toggle="section">
+        Engenharia <span class="caret">▶</span>
+      </div>
+      <div class="subsection">
+        <button>Projetos</button>
+        <button>Materiais</button>
+        <button>Documentos Técnicos</button>
+        <button>Manutenção</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-title" data-toggle="section">
+        Produção <span class="caret">▶</span>
+      </div>
+      <div class="subsection">
+        <button>Planejamento</button>
+        <button>Execução</button>
+        <button>Controle</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-title" data-toggle="section">
+        Logística <span class="caret">▶</span>
+      </div>
+      <div class="subsection">
+        <button>Estoque</button>
+        <button>Expedição</button>
+        <button>Fornecedores</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-title" data-toggle="section">
+        Qualidade <span class="caret">▶</span>
+      </div>
+      <div class="subsection">
+        <button>Testes</button>
+        <button>Certificações</button>
+        <button>Auditorias</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-title" data-toggle="section">
+        Relatórios <span class="caret">▶</span>
+      </div>
+      <div class="subsection">
+        <button>Produção</button>
+        <button>Qualidade</button>
+        <button>Financeiro</button>
+        <button>Auditorias</button>
+      </div>
+    </div>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <main class="content">
+    <section class="topo">
+      <div class="grafico">
+        <div style="width:400px;height:300px;">
+          <canvas id="productionChart"></canvas>
+        </div>
+        <div class="valores">
+          <p><strong>Planejado:</strong> 300</p>
+          <p><strong>Testados:</strong> 150</p>
+          <p><strong>Restam:</strong> 150</p>
+        </div>
+      </div>
+      <div class="coluna">
+        <h3>Registros de Testes</h3>
+        <div class="tabela-container">
+          <table class="tabela-testes">
+            <thead>
+              <tr>
+                <th>Transformador</th>
+                <th>Hi-POT</th>
+                <th>JIGA</th>
+                <th>Observação</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <section class="formulario">
+      <h3>Ler código</h3>
+      <label>Código do transformador
+        <input type="text" class="input-pequeno" placeholder="Escaneie o código">
+        <button>Verificar</button>
+      </label>
+      <p class="msg-sucesso">Teste para T001 iniciado</p>
+      <hr>
+      <div class="radio-block">
+        <span>HI-POT</span>
+        <label><input type="radio" name="hipot"> Aprovado</label>
+        <label><input type="radio" name="hipot"> Reprovado</label>
+      </div>
+      <div class="radio-block">
+        <span>JIGA</span>
+        <label><input type="radio" name="jiga"> Aprovado</label>
+        <label><input type="radio" name="jiga"> Reprovado</label>
+      </div>
+      <label>Observação
+        <input type="text" class="input-observacao" placeholder="Observações sobre o teste">
+      </label>
+      <div class="botoes">
+        <button class="btn-salvar">Salvar</button>
+        <button class="btn-export">Exportar para Excel</button>
+        <button class="btn-export">Exportar para CSV</button>
+        <button class="btn-whatsapp">Compartilhar</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const openMenu = document.getElementById('openMenu');
+    const closeMenu = document.getElementById('closeMenu');
+
+    if (openMenu) openMenu.addEventListener('click', () => {
+      sidebar.classList.add('active');
+      overlay.classList.add('active');
+    });
+
+    if (closeMenu) closeMenu.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+
+    document.querySelectorAll('.section-title[data-toggle="section"]').forEach(title => {
+      title.addEventListener('click', () => {
+        const parent = title.parentElement;
+        parent.classList.toggle('open');
+      });
+    });
+
+    const ctx = document.getElementById('productionChart').getContext('2d');
+    const productionChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Aprovados', 'Reprovados', 'Não testados'],
+        datasets: [{
+          data: [100, 50, 150],
+          backgroundColor: ['#4a90e2','#ff7f50','#cccccc']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          datalabels: {
+            color: '#333',
+            font: { size: 14, weight: 'bold' },
+            formatter: (value, ctx) => {
+              const total = ctx.chart._metasets[0].total || ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              return Math.round((value/total)*100) + '%';
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    const tabelaBody = document.getElementById('tabela-body');
+
+    const reproSet = new Set();
+    while (reproSet.size < 50) {
+      reproSet.add(Math.floor(Math.random() * 150) + 1); // 1..150
+    }
+
+    const erros = ["matéria prima", "curto"];
+    let countOperacional = 0;
+
+    for (let i = 1; i <= 300; i++) {
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td');
+      const td2 = document.createElement('td');
+      const td3 = document.createElement('td');
+      const td4 = document.createElement('td');
+
+      td1.textContent = `T${String(i).padStart(3,'0')}`;
+
+      if (i <= 150) {
+        if (reproSet.has(i)) {
+          let failHipot = Math.random() < 0.6;
+          let failJiga  = Math.random() < 0.6;
+
+          if (!failHipot && !failJiga) {
+            if (Math.random() < 0.5) failHipot = true;
+            else failJiga = true;
+          }
+
+          td2.textContent = failHipot ? "Reprovado" : "Aprovado";
+          td3.textContent = failJiga ? "Reprovado" : "Aprovado";
+
+          const probOperacional = 0.08;
+          if (countOperacional < 5 && Math.random() < probOperacional) {
+            td4.textContent = "operacional";
+            countOperacional++;
+          } else {
+            td4.textContent = erros[Math.floor(Math.random() * erros.length)];
+          }
+        } else {
+          td2.textContent = "Aprovado";
+          td3.textContent = "Aprovado";
+          td4.textContent = "-";
+        }
+      } else {
+        td2.textContent = "";
+        td3.textContent = "";
+        td4.textContent = "";
+      }
+
+      tr.append(td1, td2, td3, td4);
+      tabelaBody.appendChild(tr);
+    }
+
+    console.log("Reprovados (indices):", Array.from(reproSet).sort((a,b)=>a-b));
+    console.log("Total operacional usados:", countOperacional);
+  </script>
+</body>
+</html>
